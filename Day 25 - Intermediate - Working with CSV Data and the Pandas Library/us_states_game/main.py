@@ -7,30 +7,34 @@ image = "blank_states_img.gif"
 screen.addshape(image)
 us_map.shape(image)
 
-state_names = Turtle()
-state_names.hideturtle()
-state_names.penup()
 
 data = pandas.read_csv("50_states.csv")
-states = data.state
-states_list = states.to_list()
+states = data.state.to_list()
 
-x_coordinates = data.x.to_list()
-y_coordinates = data.y.to_list()
-
-correct_guesses = 0
 correct_answers = []
+remaining_states = data
+while len(correct_answers) < 50:
+    answer_state = screen.textinput(title=f"{len(correct_answers)}/50 States Correct",
+                                    prompt="what's another state name?").title()
+    if answer_state == "Exit":
+        missing_states = []
+        for state in states:
+            if state not in correct_answers:
+                missing_states.append(state)
+        new_data = pandas.DataFrame(missing_states)
+        new_data.to_csv("states_to_learn.csv")
+        break
+    if answer_state in states and answer_state not in correct_answers:
+        state_names = Turtle()
+        state_names.hideturtle()
+        state_names.penup()
+        correct_answers.append(answer_state)
+        # gets the row of the correctly answered state
+        answer_state_data = data[data.state == answer_state]
+        state_names.goto(int(answer_state_data.x), int(answer_state_data.y))
+        state_names.write(answer_state)
+        # remaining_states = remaining_states[remaining_states.state != answer_state]
 
-while correct_guesses != 50:
-    guess = screen.textinput(title=f"{correct_guesses}/50 States Correct", prompt="what's another state name?").title()
-    if guess in states_list and guess not in correct_answers:
-        correct_guesses += 1
-        correct_answers.append(guess)
+# states to learn.csv
+# remaining_states.to_csv("states_to_learn.csv")
 
-        x_position = x_coordinates[states_list.index(guess)]
-        y_position = y_coordinates[states_list.index(guess)]
-        state_names.goto(x_position, y_position)
-        state_names.write(guess)
-
-
-screen.exitonclick()
