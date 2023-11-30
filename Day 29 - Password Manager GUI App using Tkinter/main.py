@@ -1,17 +1,17 @@
-from functools import partial
+
 from tkinter import *
 from tkinter import messagebox
 import pyperclip
-
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 # Password Generator Project
 import random
 
 
 def generate_password():
-    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-               'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R',
-               'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
+    letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',
+               'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+               'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
     numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     symbols = ['!', '#', '$', '%', '&', '(', ')', '*', '+']
 
@@ -51,17 +51,55 @@ def save():
     website = website_input.get()
     email = email_input.get()
     password = password_input.get()
+    new_data = {website: {
+        "email": email,
+        "password": password,
+    }}
 
     if len(website) == 0 or len(password) == 0:
         messagebox.showwarning(title="Oops", message="Please don't leave any fields empty!")
     else:
-        is_ok = messagebox.askokcancel(title=website, message=f"These are the details entered: "
-                                                              f"\nEmail: {email} \nPassword: {password} \nIs it ok to save?")
-        if is_ok:
-            with open("data.txt", mode="a") as file:
-                file.write(f"{website} | {email} | {password}\n")
-                website_input.delete(0, END)
-                password_input.delete(0, END)
+        try:
+            with open("data.json", mode="r") as file:
+                # reads from json file and present it as a dictionary
+                data = json.load(file)
+                # updating old data with new data
+
+        except FileNotFoundError:
+            with open("data.json", "w") as file:
+                json.dump(new_data, file, indent=4)
+
+        # except json.decoder.JSONDecodeError:
+        #     with open("data.json", "w") as file:
+        #         json.dump(new_data, file, indent=4)
+
+        else:
+            data.update(new_data)
+            with open("data.json", "w") as file:
+                json.dump(data, file, indent=4)
+        finally:
+            website_input.delete(0, END)
+            password_input.delete(0, END)
+
+# ---------------------------- SEARCH ---------------------------------#
+
+
+def search():
+    website = website_input.get()
+    try:
+        with open("data.json", "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="Error", message="No Data was Found")
+    # except json.decoder.JSONDecodeError:
+    #     messagebox.showinfo(title="Error", message="No Data was Found")
+    else:
+        if website in data:
+            email = data[website]["email"]
+            password = data[website]["password"]
+            messagebox.showinfo(title=website, message=f"Email: {email} \nPassword: {password}")
+        else:
+            messagebox.showinfo(title="Error", message=f"No details for {website} exists.")
 
 
 # ---------------------------- UI SETUP ------------------------------- #
@@ -86,7 +124,7 @@ password_label = Label(text="Password:")
 password_label.grid(row=3, column=0)
 
 # Entries
-website_input = Entry(width=43)
+website_input = Entry(width=24)
 website_input.grid(row=1, column=1, columnspan=2, sticky="w")
 website_input.focus()
 email_input = Entry(width=43)
@@ -96,7 +134,9 @@ password_input = Entry(width=24)
 password_input.grid(row=3, column=1, sticky="w")
 
 # Buttons
-generate_password_button = Button(text="Generate Password", command=generate_password)
+search_button = Button(text="Search", width=15, command=search)
+search_button.grid(row=1, column=2)
+generate_password_button = Button(text="Generate Password", command=generate_password, width=15)
 generate_password_button.grid(row=3, column=2, sticky="w")
 add_button = Button(text="Add", width=36, command=save)
 add_button.grid(row=4, column=1, columnspan=2, sticky="w")
