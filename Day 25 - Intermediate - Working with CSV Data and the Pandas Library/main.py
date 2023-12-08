@@ -81,3 +81,5 @@ print(data_dic)
 new_data = pandas.DataFrame(data_dic)
 print(new_data)
 new_data.to_csv("squirrel_data.csv")
+
+
